@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/vigeyserupdater-icon.png" alt="viGeyserUpdater project icon" width="180">
+
 # viGeyserUpdater
 
 **A crash-safe update manager for Geyser companion plugins and extensions.**
