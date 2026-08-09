@@ -1,0 +1,79 @@
+# viGeyserUpdater installs validated JARs in place. A full server/proxy restart is
+# required after an update. Use GITHUB_TOKEN in the environment to raise API limits.
+automatic:
+  enabled: true
+  initial-delay-seconds: 30
+  interval-minutes: 360
+  apply: true
+
+network:
+  max-download-mib: 128
+  connect-timeout-seconds: 10
+  request-timeout-seconds: 120
+  retry-attempts: 3
+  retry-delay-seconds: 2
+  allowed-hosts:
+    - api.github.com
+    - github.com
+    - objects.githubusercontent.com
+    - release-assets.githubusercontent.com
+    - api.modrinth.com
+    - cdn.modrinth.com
+
+# ${plugins} resolves to the server's plugins directory. ${geyser} resolves to
+# plugins/Geyser-Spigot or plugins/Geyser-Velocity for the running platform.
+artifacts:
+  - id: geyser-model-engine
+    enabled: true
+    platforms: [BUKKIT]
+    provider: github-release
+    repository: GeyserExtensionists/GeyserModelEngine
+    asset-regex: 'GeyserModelEngine-(?!Extension).+\.jar'
+    destination: '${plugins}/GeyserModelEngine.jar'
+    existing-regex: 'GeyserModelEngine-(?!Extension).+\.jar'
+
+  - id: geyser-model-engine-extension
+    enabled: true
+    platforms: [BUKKIT, VELOCITY]
+    provider: github-release
+    repository: GeyserExtensionists/GeyserModelEngine
+    asset-regex: 'GeyserModelEngineExtension-.+\.jar'
+    destination: '${geyser}/extensions/GeyserModelEngineExtension.jar'
+    existing-regex: 'GeyserModelEngineExtension-.+\.jar'
+
+  - id: geyser-utils-bukkit
+    enabled: true
+    platforms: [BUKKIT]
+    provider: github-release
+    repository: GeyserExtensionists/GeyserUtils
+    asset-regex: 'geyserutils-spigot-.+\.jar'
+    destination: '${plugins}/GeyserUtils.jar'
+    existing-regex: 'geyserutils-spigot-.+\.jar'
+
+  - id: geyser-utils-velocity
+    enabled: true
+    platforms: [VELOCITY]
+    provider: github-release
+    repository: GeyserExtensionists/GeyserUtils
+    asset-regex: 'geyserutils-velocity-.+\.jar'
+    destination: '${plugins}/GeyserUtils.jar'
+    existing-regex: 'geyserutils-velocity-.+\.jar'
+
+  - id: geyser-utils-extension
+    enabled: true
+    platforms: [BUKKIT, VELOCITY]
+    provider: github-release
+    repository: GeyserExtensionists/GeyserUtils
+    asset-regex: 'geyserutils-geyser-.+\.jar'
+    destination: '${geyser}/extensions/GeyserUtils.jar'
+    existing-regex: 'geyserutils-geyser-.+\.jar'
+
+  - id: boar
+    enabled: true
+    platforms: [BUKKIT, VELOCITY]
+    provider: modrinth
+    project: boar
+    asset-regex: 'boar-geyser\.jar'
+    release-types: [release, beta, alpha]
+    destination: '${geyser}/extensions/Boar.jar'
+    existing-regex: '(?i)boar(?:-geyser)?(?:-.+)?\.jar'
