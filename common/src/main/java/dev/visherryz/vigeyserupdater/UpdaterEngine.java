@@ -9,6 +9,7 @@ import dev.visherryz.vigeyserupdater.install.JarValidator;
 import dev.visherryz.vigeyserupdater.net.SecureHttpClient;
 import dev.visherryz.vigeyserupdater.source.ArtifactSource;
 import dev.visherryz.vigeyserupdater.source.GitHubReleaseSource;
+import dev.visherryz.vigeyserupdater.source.GeyserDownloadSource;
 import dev.visherryz.vigeyserupdater.source.ModrinthSource;
 import dev.visherryz.vigeyserupdater.source.RemoteArtifact;
 import dev.visherryz.vigeyserupdater.state.InstalledArtifact;
@@ -97,6 +98,7 @@ public final class UpdaterEngine implements AutoCloseable {
                 ArtifactSource source = switch (artifact.provider().toLowerCase()) {
                     case "github-release" -> new GitHubReleaseSource(http);
                     case "modrinth" -> new ModrinthSource(http);
+                    case "geyser-downloads" -> new GeyserDownloadSource(http);
                     default -> throw new IllegalArgumentException("Unsupported provider: " + artifact.provider());
                 };
                 RemoteArtifact remote = source.resolve(artifact);

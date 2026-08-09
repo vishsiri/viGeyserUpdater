@@ -11,7 +11,7 @@
 ![Velocity](https://img.shields.io/badge/Velocity-3.4-5C6BC0?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square)
 
-Keep GeyserModelEngine, GeyserUtils, and Boar current on Paper-family servers and Velocity proxies—automatically or on demand.
+Keep GeyserModelEngine, GeyserUtils, Floodgate, and Boar current on Paper-family servers and Velocity proxies—automatically or on demand.
 
 </div>
 
@@ -25,7 +25,7 @@ viGeyserUpdater treats each installation as a recoverable transaction:
 
 - automatic and manual update modes;
 - independent enable/disable controls for every managed artifact;
-- GitHub Releases and Modrinth source providers;
+- GitHub Releases, Modrinth, and Geyser Downloads source providers;
 - HTTPS host allowlisting, redirect validation, timeouts, and download limits;
 - retry with exponential backoff for connection failures, HTTP `429`, and HTTP `5xx`;
 - upstream SHA-256 verification when provided, plus JAR structure validation;
@@ -49,12 +49,15 @@ The bundled configuration manages these artifacts by default. Every entry can be
 | `geyser-utils-velocity` | — | Yes | GitHub Release `latest` |
 | `geyser-utils-extension` | Yes | Yes | GitHub Release `latest` |
 | `boar` | Yes | Yes | Modrinth, `geyser` artifact |
+| `floodgate-bukkit` | Yes | — | Geyser Downloads API |
+| `floodgate-velocity` | — | Yes | Geyser Downloads API |
 
 Upstream projects:
 
 - [GeyserModelEngine](https://github.com/GeyserExtensionists/GeyserModelEngine)
 - [GeyserUtils](https://github.com/GeyserExtensionists/GeyserUtils)
 - [Boar](https://github.com/opencollab-incubator/Boar)
+- [Floodgate](https://github.com/GeyserMC/Floodgate)
 
 ## Technology stack
 
@@ -106,8 +109,8 @@ Build from source on Windows:
 Build outputs:
 
 ```text
-bukkit/build/libs/viGeyserUpdater-Bukkit-1.0.0.jar
-velocity/build/libs/viGeyserUpdater-Velocity-1.0.0.jar
+bukkit/build/libs/viGeyserUpdater-Bukkit-1.1.0-SNAPSHOT.jar
+velocity/build/libs/viGeyserUpdater-Velocity-1.1.0-SNAPSHOT.jar
 ```
 
 ## Commands
@@ -170,6 +173,32 @@ artifacts:
 ```
 
 Do not remove the remaining fields from an artifact entry. Set only `enabled` to `false`, then run `/gupdates reload`.
+
+### Upgrading from 1.0.0
+
+Existing configuration files are not overwritten. Add these entries under `artifacts:` to enable Floodgate management while preserving your current settings:
+
+```yaml
+  - id: floodgate-bukkit
+    enabled: true
+    platforms: [BUKKIT]
+    provider: geyser-downloads
+    project: floodgate
+    asset-regex: 'floodgate-spigot\.jar'
+    destination: '${plugins}/floodgate.jar'
+    existing-regex: '(?i)floodgate(?:-spigot)?(?:-.+)?\.jar'
+
+  - id: floodgate-velocity
+    enabled: true
+    platforms: [VELOCITY]
+    provider: geyser-downloads
+    project: floodgate
+    asset-regex: 'floodgate-velocity\.jar'
+    destination: '${plugins}/floodgate.jar'
+    existing-regex: '(?i)floodgate(?:-velocity)?(?:-.+)?\.jar'
+```
+
+Add `download.geysermc.org` to `network.allowed-hosts`, then run `/gupdates reload`. A new installation receives these settings automatically.
 
 ### Network resilience
 
@@ -234,7 +263,7 @@ All network and file operations run on one daemon worker. Folia polling does not
 viGeyserUpdater
 ├── common
 │   ├── config       Safe YAML loading and immutable records
-│   ├── source       GitHub and Modrinth provider strategies
+│   ├── source       GitHub, Modrinth, and Geyser Downloads strategies
 │   ├── net          Bounded HTTPS client and retry policy
 │   ├── install      Validation, hashing, journal, and recovery
 │   ├── state        Atomic installed-artifact state
@@ -271,7 +300,7 @@ $env:VI_LIVE_UPDATE_TEST='true'
 .\gradlew.bat clean test --no-build-cache
 ```
 
-Live tests resolve GitHub and Modrinth releases, download and validate a real GeyserUtils artifact, install it into a temporary server root, and verify that the next check reports it as current.
+Live tests resolve GitHub, Modrinth, and Geyser Downloads releases; download and validate real GeyserUtils and Floodgate artifacts; install into temporary locations; and verify that the next check reports managed state correctly.
 
 > [!NOTE]
 > Fault-injection tests simulate process failure at transaction checkpoints. They are not a physical power-loss test; the strongest durability guarantee still depends on the filesystem, atomic-move implementation, and storage controller.
@@ -286,4 +315,4 @@ Live tests resolve GitHub and Modrinth releases, download and validate a real Ge
 
 viGeyserUpdater is available under the [MIT License](LICENSE).
 
-This project is an original implementation. It uses upstream repositories only to discover their published artifacts and documented installation locations; it does not copy source code from GeyserModelEngine, GeyserUtils, or Boar.
+This project is an original implementation. It uses upstream repositories only to discover their published artifacts and documented installation locations; it does not copy source code from GeyserModelEngine, GeyserUtils, Floodgate, or Boar.

@@ -4,6 +4,7 @@ import dev.visherryz.vigeyserupdater.PlatformKind;
 import dev.visherryz.vigeyserupdater.LogSink;
 import dev.visherryz.vigeyserupdater.config.ArtifactConfig;
 import dev.visherryz.vigeyserupdater.install.CrashSafeInstaller;
+import dev.visherryz.vigeyserupdater.install.Hashing;
 import dev.visherryz.vigeyserupdater.install.JarValidator;
 import dev.visherryz.vigeyserupdater.net.SecureHttpClient;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,20 @@ class LiveSourceSmokeTest {
                 "GeyserModelEngineExtension-.+\\.jar", "plugins/Geyser/extension.jar", null, List.of("release"));
         RemoteArtifact remote = new GitHubReleaseSource(http).resolve(config);
         assertTrue(remote.fileName().startsWith("GeyserModelEngineExtension-"));
+    }
+
+    @Test void downloadsAndVerifiesCurrentFloodgateArtifact() throws Exception {
+        SecureHttpClient geyserHttp = new SecureHttpClient(Set.of("download.geysermc.org"),
+                128L * 1024 * 1024, 10, 120);
+        ArtifactConfig config = new ArtifactConfig("floodgate-bukkit", true, List.of(PlatformKind.BUKKIT),
+                "geyser-downloads", null, "floodgate", "floodgate-spigot\\.jar",
+                "plugins/floodgate.jar", null, List.of("release"));
+        RemoteArtifact remote = new GeyserDownloadSource(geyserHttp).resolve(config);
+        Path file = directory.resolve("floodgate.jar");
+        geyserHttp.download(remote.downloadUri(), file, remote.expectedSize());
+        JarValidator.validate(file);
+        assertTrue(remote.version().matches("2\\.2\\.\\d+:\\d+:spigot"));
+        assertTrue(Hashing.sha256(file).equalsIgnoreCase(remote.expectedSha256()));
     }
 
     private static final class SilentLog implements LogSink {

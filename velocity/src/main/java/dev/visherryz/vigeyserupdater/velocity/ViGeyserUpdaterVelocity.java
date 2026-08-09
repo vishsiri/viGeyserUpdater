@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.Consumer;
 
-@Plugin(id = "vigeyserupdater", name = "viGeyserUpdater", version = "1.0.0",
+@Plugin(id = "vigeyserupdater", name = "viGeyserUpdater", version = "1.1.0-SNAPSHOT",
         authors = {"VisherRyz"}, description = "Crash-safe Geyser companion updater")
 public final class ViGeyserUpdaterVelocity {
     private final ProxyServer proxy;

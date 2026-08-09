@@ -5,7 +5,7 @@ plugins {
 
 allprojects {
     group = "dev.visherryz.vigeyserupdater"
-    version = "1.0.0"
+    version = "1.1.0-SNAPSHOT"
     repositories {
         mavenCentral()
         maven("https://repo.papermc.io/repository/maven-public/")

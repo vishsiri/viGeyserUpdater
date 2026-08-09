@@ -19,6 +19,7 @@ network:
     - release-assets.githubusercontent.com
     - api.modrinth.com
     - cdn.modrinth.com
+    - download.geysermc.org
 
 # ${plugins} resolves to the server's plugins directory. ${geyser} resolves to
 # plugins/Geyser-Spigot or plugins/Geyser-Velocity for the running platform.
@@ -77,3 +78,21 @@ artifacts:
     release-types: [release, beta, alpha]
     destination: '${geyser}/extensions/Boar.jar'
     existing-regex: '(?i)boar(?:-geyser)?(?:-.+)?\.jar'
+
+  - id: floodgate-bukkit
+    enabled: true
+    platforms: [BUKKIT]
+    provider: geyser-downloads
+    project: floodgate
+    asset-regex: 'floodgate-spigot\.jar'
+    destination: '${plugins}/floodgate.jar'
+    existing-regex: '(?i)floodgate(?:-spigot)?(?:-.+)?\.jar'
+
+  - id: floodgate-velocity
+    enabled: true
+    platforms: [VELOCITY]
+    provider: geyser-downloads
+    project: floodgate
+    asset-regex: 'floodgate-velocity\.jar'
+    destination: '${plugins}/floodgate.jar'
+    existing-regex: '(?i)floodgate(?:-velocity)?(?:-.+)?\.jar'

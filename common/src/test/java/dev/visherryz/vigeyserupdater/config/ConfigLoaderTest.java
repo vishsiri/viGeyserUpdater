@@ -16,7 +16,7 @@ class ConfigLoaderTest {
 
     @Test void bundledConfigurationLoadsAndMatchesCurrentAssetNames() throws Exception {
         UpdaterConfig config = ConfigLoader.load(directory);
-        assertEquals(6, config.artifacts().size());
+        assertEquals(8, config.artifacts().size());
         Map<String, ArtifactConfig> artifacts = config.artifacts().stream()
                 .collect(Collectors.toMap(ArtifactConfig::id, item -> item));
         assertTrue(Pattern.matches(artifacts.get("geyser-model-engine").assetRegex(), "GeyserModelEngine-1.0.9.jar"));
@@ -25,5 +25,7 @@ class ConfigLoaderTest {
         assertTrue(Pattern.matches(artifacts.get("geyser-utils-velocity").assetRegex(), "geyserutils-velocity-1.0-SNAPSHOT.jar"));
         assertTrue(Pattern.matches(artifacts.get("geyser-utils-extension").assetRegex(), "geyserutils-geyser-1.0-SNAPSHOT.jar"));
         assertTrue(Pattern.matches(artifacts.get("boar").assetRegex(), "boar-geyser.jar"));
+        assertTrue(Pattern.matches(artifacts.get("floodgate-bukkit").assetRegex(), "floodgate-spigot.jar"));
+        assertTrue(Pattern.matches(artifacts.get("floodgate-velocity").assetRegex(), "floodgate-velocity.jar"));
     }
 }
