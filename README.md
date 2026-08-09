@@ -1,42 +1,141 @@
+<div align="center">
+
 # viGeyserUpdater
 
-ตัวอัปเดตแบบ crash-safe สำหรับปลั๊กอินและ extension รอบ Geyser รองรับ **Paper, Folia, Spigot และ Velocity** จาก codebase เดียวกัน
+**A crash-safe update manager for Geyser companion plugins and extensions.**
 
-ค่าเริ่มต้นดูแลไฟล์ต่อไปนี้:
+![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
+![Paper](https://img.shields.io/badge/Paper%20%7C%20Spigot%20%7C%20Folia-supported-4A90E2?style=flat-square)
+![Velocity](https://img.shields.io/badge/Velocity-3.4-5C6BC0?style=flat-square)
+![License](https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square)
 
-| Component | Bukkit | Velocity | Source |
-|---|---:|---:|---|
-| GeyserModelEngine plugin | yes | — | GitHub Release `latest` |
-| GeyserModelEngine extension | yes | yes | GitHub Release `latest` |
-| GeyserUtils platform plugin | Spigot build | Velocity build | GitHub Release `latest` |
-| GeyserUtils extension | yes | yes | GitHub Release `latest` |
-| Boar extension | yes | yes | Modrinth (`geyser` artifact) |
+Keep GeyserModelEngine, GeyserUtils, and Boar current on Paper-family servers and Velocity proxies—automatically or on demand.
+
+</div>
+
+---
+
+## Why viGeyserUpdater?
+
+Updating a live Minecraft stack is more than replacing a JAR. Downloads can stop halfway, release hosts can become unavailable, storage can reject a write, or the process can terminate between moving the old and new files.
+
+viGeyserUpdater treats each installation as a recoverable transaction:
+
+- automatic and manual update modes;
+- independent enable/disable controls for every managed artifact;
+- GitHub Releases and Modrinth source providers;
+- HTTPS host allowlisting, redirect validation, timeouts, and download limits;
+- retry with exponential backoff for connection failures, HTTP `429`, and HTTP `5xx`;
+- upstream SHA-256 verification when provided, plus JAR structure validation;
+- atomic state and transaction journals;
+- startup recovery after an interrupted installation;
+- one dedicated worker thread—no network or file I/O on the server thread;
+- platform adapters for Paper, Spigot, Folia, and Velocity.
+
+> [!IMPORTANT]
+> Installed updates take effect after a **full server or proxy restart**. Plugin reloaders are not supported.
+
+## Managed artifacts
+
+The bundled configuration manages these artifacts by default. Every entry can be disabled independently with `enabled: false`.
+
+| Artifact ID | Bukkit family | Velocity | Upstream source |
+|---|:---:|:---:|---|
+| `geyser-model-engine` | Yes | — | GitHub Release `latest` |
+| `geyser-model-engine-extension` | Yes | Yes | GitHub Release `latest` |
+| `geyser-utils-bukkit` | Yes | — | GitHub Release `latest` |
+| `geyser-utils-velocity` | — | Yes | GitHub Release `latest` |
+| `geyser-utils-extension` | Yes | Yes | GitHub Release `latest` |
+| `boar` | Yes | Yes | Modrinth, `geyser` artifact |
+
+Upstream projects:
+
+- [GeyserModelEngine](https://github.com/GeyserExtensionists/GeyserModelEngine)
+- [GeyserUtils](https://github.com/GeyserExtensionists/GeyserUtils)
+- [Boar](https://github.com/opencollab-incubator/Boar)
+
+## Technology stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Language/runtime | Java 21 | Records, modern concurrency, NIO, and the built-in HTTP client |
+| Build | Gradle 8.14.4 with Kotlin DSL | Reproducible multi-module builds |
+| Packaging | Shadow 8.3.8 | Produces isolated, deployable platform JARs |
+| Bukkit adapter | Paper API 1.21.4 | Paper, Spigot, and Folia lifecycle and commands |
+| Proxy adapter | Velocity API 3.4 | Velocity lifecycle, scheduler, permissions, and commands |
+| HTTP | Java `HttpClient` | HTTPS downloads, explicit redirects, and bounded requests |
+| Configuration | SnakeYAML 2.4 | Safe YAML parsing with duplicate-key protection |
+| State | Gson 2.13.1 | Small atomic state and transaction journal files |
+| Testing | JUnit 5.13.4 | Unit, fault-injection, host-failure, and live integration tests |
+| CI | GitHub Actions | Java 21 build, test, and artifact packaging |
+
+Gson and SnakeYAML are relocated inside the final JARs. Platform APIs remain `compileOnly` and are never shaded.
 
 ## Requirements
 
 - Java 21
-- Paper/Spigot/Folia 1.20.6+ หรือ Velocity 3.4+
-- Geyser ติดตั้งในชื่อโฟลเดอร์มาตรฐาน `plugins/Geyser-Spigot` หรือ `plugins/Geyser-Velocity` (แก้ path ใน config ได้)
+- Paper, Spigot, or Folia in the modern Java 21 server line
+- Velocity 3.4 for proxy installations
+- A local Geyser installation when managing Geyser extensions
 
-## Build และติดตั้ง
+The default extension paths are:
+
+```text
+plugins/Geyser-Spigot/extensions
+plugins/Geyser-Velocity/extensions
+```
+
+Custom Geyser directory names are supported by changing each artifact's `destination`.
+
+## Installation
+
+1. Download or build the JAR for your platform.
+2. Place it in the server or proxy `plugins/` directory.
+3. Start the server once to generate `plugins/viGeyserUpdater/config.yml`.
+4. Review the enabled artifacts and destination paths.
+5. Restart after an update has been installed.
+
+Build from source on Windows:
 
 ```powershell
 .\gradlew.bat clean test build
 ```
 
-- Bukkit family: `bukkit/build/libs/viGeyserUpdater-Bukkit-1.0.0.jar`
-- Velocity: `velocity/build/libs/viGeyserUpdater-Velocity-1.0.0.jar`
+Build outputs:
 
-นำ JAR ที่ตรงกับ platform ไปใส่ใน `plugins/` แล้วเปิด server/proxy ครั้งแรก ระบบจะสร้าง `plugins/viGeyserUpdater/config.yml` ค่าเริ่มต้นเปิด auto-update ทุก 6 ชั่วโมงและติดตั้งให้อัตโนมัติ การอัปเดตที่ติดตั้งแล้วมีผลหลัง **full restart** เท่านั้น ไม่ควรใช้ plugin reloaders
+```text
+bukkit/build/libs/viGeyserUpdater-Bukkit-1.0.0.jar
+velocity/build/libs/viGeyserUpdater-Velocity-1.0.0.jar
+```
 
-ถ้าต้องการเฉพาะ manual mode:
+## Commands
+
+The required permission is `vigeyserupdater.admin`. Bukkit grants it to operators by default; Velocity delegates it to the configured permission provider.
+
+| Command | Description |
+|---|---|
+| `/geyserupdates status` | Show the current state of every enabled artifact |
+| `/geyserupdates check [artifact\|all]` | Check for updates without installing them |
+| `/geyserupdates update [artifact\|all]` | Check and install available updates |
+| `/geyserupdates reload` | Reload and validate `config.yml` |
+
+Alias: `/gupdates`
+
+## Configuration
+
+### Automatic mode
+
+The default configuration checks and applies updates every six hours:
 
 ```yaml
 automatic:
-  enabled: false
+  enabled: true
+  initial-delay-seconds: 30
+  interval-minutes: 360
+  apply: true
 ```
 
-หรือให้ตรวจอัตโนมัติแต่ไม่ติดตั้ง:
+Check automatically without installing:
 
 ```yaml
 automatic:
@@ -44,65 +143,145 @@ automatic:
   apply: false
 ```
 
-## Commands
+Manual-only mode:
 
-Permission: `vigeyserupdater.admin` (ค่าเริ่มต้น Bukkit ให้ OP; Velocity ใช้ permission provider ของระบบ)
-
-```text
-/geyserupdates status
-/geyserupdates check [artifact|all]
-/geyserupdates update [artifact|all]
-/geyserupdates reload
+```yaml
+automatic:
+  enabled: false
 ```
 
-Alias: `/gupdates`
+### Enable or disable individual artifacts
 
-## Safety model
+```yaml
+artifacts:
+  - id: geyser-model-engine-extension
+    enabled: true
+    # remaining source and destination settings...
 
-ทุก update ทำตามลำดับนี้:
+  - id: geyser-utils-extension
+    enabled: false
+    # remaining source and destination settings...
 
-1. ตรวจ HTTPS host allowlist, redirect ทุก hop, timeout, `Content-Length` และ byte limit
-2. ดาวน์โหลดเป็นไฟล์ชั่วคราวและ force ข้อมูลลง storage
-3. ตรวจ SHA-256 (เมื่อ upstream ส่ง digest) และเปิด JAR เพื่อตรวจโครงสร้าง/entry
-4. เขียน transaction journal แบบ atomic
-5. สลับ `current -> backup -> new` ด้วย atomic move เมื่อ filesystem รองรับ
-6. ถ้า process หยุดกลางทาง startup ถัดไปจะเลือกคืนไฟล์เก่าหรือรักษาไฟล์ใหม่ตาม state ที่พบ
+  - id: boar
+    enabled: false
+    # remaining source and destination settings...
+```
 
-ไฟล์ `state.json` และ transaction journal ก็เขียนผ่าน temporary file + replace เช่นกัน งาน network/file I/O อยู่บน worker thread เดี่ยว ไม่บล็อก main thread และไม่ใช้ Bukkit scheduler สำหรับ polling จึงใช้ได้กับ Folia
+Do not remove the remaining fields from an artifact entry. Set only `enabled` to `false`, then run `/gupdates reload`.
 
-ข้อจำกัด: crash tests จำลอง exception หลัง transaction checkpoints ทั้งสามจุดและ first-install recovery ไม่ใช่การตัดไฟจริง ความทนทานสูงสุดยังขึ้นกับ atomic-move/fsync semantics ของ filesystem และ storage controller ที่ใช้
+### Network resilience
 
-บน Bukkit ตัว updater ถูกตั้งให้โหลดช่วง `STARTUP` และก่อน Geyser/GeyserUtils/GeyserModelEngine เพื่อลดปัญหา JAR lock บน Windows อย่างไรก็ตาม Velocity ไม่รับประกันลำดับ classloader แบบเดียวกัน; หาก filesystem ปฏิเสธการสลับ JAR ที่กำลังเปิดอยู่ ระบบจะรายงาน `failed` และรักษาไฟล์เดิมไว้ ให้หยุด proxy แล้วแทนไฟล์แบบ manual ในกรณีนั้น
+```yaml
+network:
+  max-download-mib: 128
+  connect-timeout-seconds: 10
+  request-timeout-seconds: 120
+  retry-attempts: 3
+  retry-delay-seconds: 2
+```
 
-## Configuration notes
+Retries use exponential backoff. If the source remains unavailable, the artifact is marked `failed`, its installed JAR and state remain untouched, and the automatic scheduler tries again during the next cycle.
 
-- `${plugins}` คือ `<server-root>/plugins`
-- `${geyser}` คือ `plugins/Geyser-Spigot` บน Bukkit family และ `plugins/Geyser-Velocity` บน Velocity
-- `existing-regex` ช่วยหา JAR เดิมที่มีเลขเวอร์ชันในชื่อ ถ้าพบมากกว่าหนึ่งไฟล์ระบบจะหยุด artifact นั้นแทนการเดา
-- ใส่ `GITHUB_TOKEN` เป็น environment variable ได้เพื่อเพิ่ม GitHub API rate limit; ไม่ต้องเก็บ token ใน YAML
-- เมื่อ host ตอบไม่ได้, timeout, HTTP 429 หรือ HTTP 5xx ระบบ retry แบบ exponential backoff ตาม `retry-attempts`/`retry-delay-seconds`; หากยังล้มเหลว artifact จะเป็น `failed`, JAR/state เดิมไม่ถูกแตะ และ automatic scheduler จะลองใหม่ในรอบถัดไป
-- ปิด artifact รายตัวด้วย `enabled: false`
-- หากใช้ชื่อโฟลเดอร์ Geyser ต่างจากมาตรฐาน ให้เปลี่ยน `destination` ของ extension เป็น path แบบ relative จาก server root
+Set `GITHUB_TOKEN` in the process environment to raise the GitHub API rate limit without storing credentials in YAML.
 
-## Tests
+### Path variables
 
-ชุดปกติครอบคลุม transaction recovery ทุก checkpoint, first install, JAR validation, destination matching และ path traversal:
+| Variable | Resolution |
+|---|---|
+| `${plugins}` | `<server-root>/plugins` |
+| `${geyser}` on Bukkit | `plugins/Geyser-Spigot` |
+| `${geyser}` on Velocity | `plugins/Geyser-Velocity` |
 
-รวมถึงจำลอง update host ปิดพอร์ต/เชื่อมต่อไม่ได้ เพื่อตรวจ retry exhaustion, fail-closed host allowlist และยืนยันว่า JAR เดิมไม่มีการแก้ไขหรือสร้าง transaction ค้าง
+`existing-regex` discovers an already-installed versioned JAR. If more than one file matches, the artifact fails safely instead of guessing which file to replace.
+
+## Crash-safe installation
+
+```text
+Resolve release
+      ↓
+Validate HTTPS host and redirects
+      ↓
+Download to a bounded temporary file
+      ↓
+Verify checksum and JAR structure
+      ↓
+Persist PREPARED transaction journal
+      ↓
+current JAR → backup → new JAR
+      ↓
+Persist installed state and clean up
+```
+
+If the process stops during the transaction, the next startup examines the target, pending file, backup, and journal. It restores the known-good JAR or completes a safe first installation based on the durable files that remain.
+
+All network and file operations run on one daemon worker. Folia polling does not use or block an entity scheduler; player-facing command responses are dispatched through the appropriate platform scheduler.
+
+### Host failure behavior
+
+| Failure | Behavior |
+|---|---|
+| DNS, connection, or timeout failure | Retry with exponential backoff |
+| HTTP `429` or `5xx` | Retry with exponential backoff |
+| HTTP `4xx` | Fail without retrying |
+| Redirect to a non-allowlisted host | Reject immediately |
+| Retries exhausted | Mark artifact failed and preserve the installed JAR/state |
+
+## Architecture
+
+```text
+viGeyserUpdater
+├── common
+│   ├── config       Safe YAML loading and immutable records
+│   ├── source       GitHub and Modrinth provider strategies
+│   ├── net          Bounded HTTPS client and retry policy
+│   ├── install      Validation, hashing, journal, and recovery
+│   ├── state        Atomic installed-artifact state
+│   └── engine       Serialized update orchestration
+├── bukkit           Paper / Spigot / Folia adapter
+└── velocity         Velocity adapter
+```
+
+The common module does not depend on Bukkit or Velocity. Platform modules contain only lifecycle, command, permission, scheduler, and logging adapters. New release providers can implement `ArtifactSource` without changing the transaction installer.
+
+## Testing
+
+Run the deterministic test suite:
 
 ```powershell
 .\gradlew.bat clean test
 ```
 
-Live smoke tests จะ resolve API ปัจจุบัน, ดาวน์โหลด GeyserUtils asset จริง, validate และติดตั้งลง temporary directory รวมถึง resolve Boar จาก Modrinth:
+The suite covers:
+
+- recovery after every transaction checkpoint;
+- interrupted first installation;
+- corrupt and classless JAR rejection;
+- destination matching and path traversal rejection;
+- unreachable update hosts and retry exhaustion;
+- fail-closed host allowlisting;
+- preservation of the installed JAR after a network failure;
+- bundled configuration and asset-regex validation.
+
+Run live integration tests against the current upstream services:
 
 ```powershell
 $env:VI_LIVE_UPDATE_TEST='true'
 .\gradlew.bat clean test --no-build-cache
 ```
 
-## Design
+Live tests resolve GitHub and Modrinth releases, download and validate a real GeyserUtils artifact, install it into a temporary server root, and verify that the next check reports it as current.
 
-`common` มี updater engine, source providers, validation, state และ crash-safe installer โดยไม่อ้าง Bukkit/Velocity API ส่วน `bukkit` และ `velocity` เป็น adapter บาง ๆ สำหรับ lifecycle, command, permission และ message dispatch เท่านั้น ทำให้เพิ่ม provider หรือ platform ภายหลังโดยไม่รวมทุกอย่างไว้ใน God Class
+> [!NOTE]
+> Fault-injection tests simulate process failure at transaction checkpoints. They are not a physical power-loss test; the strongest durability guarantee still depends on the filesystem, atomic-move implementation, and storage controller.
 
-โปรเจกต์นี้เขียนใหม่โดยศึกษาเฉพาะวิธีแจก artifact และตำแหน่งติดตั้งจาก upstream ไม่คัดลอก source code ของ GeyserModelEngine, GeyserUtils หรือ Boar
+## Platform notes
+
+- The Bukkit build loads during `STARTUP` and before the known Geyser companion plugins to reduce Windows JAR-lock conflicts.
+- Velocity does not provide the same classloader ordering guarantee. If Windows refuses to replace an open JAR, viGeyserUpdater reports the failure and preserves the original file; stop the proxy and replace that artifact manually.
+- Full runtime boot/restart validation on every supported server implementation remains separate from the automated unit and integration suite.
+
+## License
+
+viGeyserUpdater is available under the [MIT License](LICENSE).
+
+This project is an original implementation. It uses upstream repositories only to discover their published artifacts and documented installation locations; it does not copy source code from GeyserModelEngine, GeyserUtils, or Boar.
