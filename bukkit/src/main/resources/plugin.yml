@@ -3,7 +3,7 @@ version: '${version}'
 main: dev.visherryz.vigeyserupdater.bukkit.ViGeyserUpdaterPlugin
 api-version: '1.20'
 load: STARTUP
-loadbefore: [Geyser-Spigot, GeyserModelEngine, GeyserUtils]
+loadbefore: [floodgate, Geyser-Spigot, GeyserModelEngine, GeyserUtils]
 folia-supported: true
 authors: [VisherRyz]
 description: Crash-safe automatic updater for Geyser companion plugins and extensions
