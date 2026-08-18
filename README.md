@@ -4,14 +4,14 @@
 
 # viGeyserUpdater
 
-**A crash-safe update manager for Geyser companion plugins and extensions.**
+**A crash-safe update manager for Geyser and its companion plugins and extensions.**
 
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)
 ![Paper](https://img.shields.io/badge/Paper%20%7C%20Spigot%20%7C%20Folia-supported-4A90E2?style=flat-square)
 ![Velocity](https://img.shields.io/badge/Velocity-3.4-5C6BC0?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-2EA44F?style=flat-square)
 
-Keep GeyserModelEngine, GeyserUtils, Floodgate, and Boar current on Paper-family servers and Velocity proxies—automatically or on demand.
+Keep Geyser, Floodgate, GeyserModelEngine, GeyserUtils, and Boar current on Paper-family servers and Velocity proxies—automatically or on demand.
 
 </div>
 
@@ -43,6 +43,8 @@ The bundled configuration manages these artifacts by default. Every entry can be
 
 | Artifact ID | Bukkit family | Velocity | Upstream source |
 |---|:---:|:---:|---|
+| `geyser-bukkit` | Yes | — | Geyser Downloads API |
+| `geyser-velocity` | — | Yes | Geyser Downloads API |
 | `geyser-model-engine` | Yes | — | GitHub Release `latest` |
 | `geyser-model-engine-extension` | Yes | Yes | GitHub Release `latest` |
 | `geyser-utils-bukkit` | Yes | — | GitHub Release `latest` |
@@ -54,6 +56,7 @@ The bundled configuration manages these artifacts by default. Every entry can be
 
 Upstream projects:
 
+- [Geyser](https://github.com/GeyserMC/Geyser)
 - [GeyserModelEngine](https://github.com/GeyserExtensionists/GeyserModelEngine)
 - [GeyserUtils](https://github.com/GeyserExtensionists/GeyserUtils)
 - [Boar](https://github.com/opencollab-incubator/Boar)
@@ -81,7 +84,7 @@ Gson and SnakeYAML are relocated inside the final JARs. Platform APIs remain `co
 - Java 21
 - Paper, Spigot, or Folia in the modern Java 21 server line
 - Velocity 3.4 for proxy installations
-- A local Geyser installation when managing Geyser extensions
+- Geyser is optional at first startup; the updater can install the selected platform artifact
 
 The default extension paths are:
 
@@ -159,6 +162,10 @@ automatic:
 
 ```yaml
 artifacts:
+  - id: geyser-bukkit
+    enabled: true
+    # remaining source and destination settings...
+
   - id: geyser-model-engine-extension
     enabled: true
     # remaining source and destination settings...
@@ -176,9 +183,27 @@ Do not remove the remaining fields from an artifact entry. Set only `enabled` to
 
 ### Upgrading from 1.0.0
 
-Existing configuration files are not overwritten. Add these entries under `artifacts:` to enable Floodgate management while preserving your current settings:
+Existing configuration files are not overwritten. Add these entries under `artifacts:` to enable Geyser and Floodgate management while preserving your current settings:
 
 ```yaml
+  - id: geyser-bukkit
+    enabled: true
+    platforms: [BUKKIT]
+    provider: geyser-downloads
+    project: geyser
+    asset-regex: 'Geyser-Spigot\.jar'
+    destination: '${plugins}/Geyser-Spigot.jar'
+    existing-regex: '(?i)Geyser-Spigot(?:-.+)?\.jar'
+
+  - id: geyser-velocity
+    enabled: true
+    platforms: [VELOCITY]
+    provider: geyser-downloads
+    project: geyser
+    asset-regex: 'Geyser-Velocity\.jar'
+    destination: '${plugins}/Geyser-Velocity.jar'
+    existing-regex: '(?i)Geyser-Velocity(?:-.+)?\.jar'
+
   - id: floodgate-bukkit
     enabled: true
     platforms: [BUKKIT]
