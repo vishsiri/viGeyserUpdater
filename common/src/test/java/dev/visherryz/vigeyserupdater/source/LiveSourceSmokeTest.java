@@ -68,6 +68,28 @@ class LiveSourceSmokeTest {
         assertTrue(Hashing.sha256(file).equalsIgnoreCase(remote.expectedSha256()));
     }
 
+    @Test void downloadsAndVerifiesCurrentGeyserAndResolvesBothPlatforms() throws Exception {
+        SecureHttpClient geyserHttp = new SecureHttpClient(Set.of("download.geysermc.org"),
+                128L * 1024 * 1024, 10, 120);
+        ArtifactConfig spigotConfig = new ArtifactConfig("geyser-bukkit", true, List.of(PlatformKind.BUKKIT),
+                "geyser-downloads", null, "geyser", "Geyser-Spigot\\.jar",
+                "plugins/Geyser-Spigot.jar", null, List.of("release"));
+        ArtifactConfig velocityConfig = new ArtifactConfig("geyser-velocity", true, List.of(PlatformKind.VELOCITY),
+                "geyser-downloads", null, "geyser", "Geyser-Velocity\\.jar",
+                "plugins/Geyser-Velocity.jar", null, List.of("release"));
+
+        RemoteArtifact spigot = new GeyserDownloadSource(geyserHttp).resolve(spigotConfig);
+        RemoteArtifact velocity = new GeyserDownloadSource(geyserHttp).resolve(velocityConfig);
+        Path file = directory.resolve("Geyser-Spigot.jar");
+        geyserHttp.download(spigot.downloadUri(), file, spigot.expectedSize());
+
+        JarValidator.validate(file);
+        assertTrue(spigot.version().matches("\\d+\\.\\d+\\.\\d+:\\d+:spigot"));
+        assertTrue(Hashing.sha256(file).equalsIgnoreCase(spigot.expectedSha256()));
+        assertTrue(velocity.version().endsWith(":velocity"));
+        assertTrue(velocity.fileName().equals("Geyser-Velocity.jar"));
+    }
+
     private static final class SilentLog implements LogSink {
         public void info(String message) {}
         public void warn(String message) {}

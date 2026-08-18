@@ -24,6 +24,24 @@ network:
 # ${plugins} resolves to the server's plugins directory. ${geyser} resolves to
 # plugins/Geyser-Spigot or plugins/Geyser-Velocity for the running platform.
 artifacts:
+  - id: geyser-bukkit
+    enabled: true
+    platforms: [BUKKIT]
+    provider: geyser-downloads
+    project: geyser
+    asset-regex: 'Geyser-Spigot\.jar'
+    destination: '${plugins}/Geyser-Spigot.jar'
+    existing-regex: '(?i)Geyser-Spigot(?:-.+)?\.jar'
+
+  - id: geyser-velocity
+    enabled: true
+    platforms: [VELOCITY]
+    provider: geyser-downloads
+    project: geyser
+    asset-regex: 'Geyser-Velocity\.jar'
+    destination: '${plugins}/Geyser-Velocity.jar'
+    existing-regex: '(?i)Geyser-Velocity(?:-.+)?\.jar'
+
   - id: geyser-model-engine
     enabled: true
     platforms: [BUKKIT]

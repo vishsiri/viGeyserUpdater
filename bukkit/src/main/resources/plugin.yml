@@ -6,7 +6,7 @@ load: STARTUP
 loadbefore: [floodgate, Geyser-Spigot, GeyserModelEngine, GeyserUtils]
 folia-supported: true
 authors: [VisherRyz]
-description: Crash-safe automatic updater for Geyser companion plugins and extensions
+description: Crash-safe automatic updater for Geyser and companion plugins/extensions
 commands:
   geyserupdates:
     description: Check and install Geyser companion updates
